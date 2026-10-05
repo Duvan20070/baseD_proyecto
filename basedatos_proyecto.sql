@@ -87,8 +87,12 @@ CREATE TABLE IF NOT EXISTS rutinas (
   generada_por_ia BOOLEAN         DEFAULT FALSE,
   activa          BOOLEAN         DEFAULT TRUE,
   creado_en       DATETIME        DEFAULT CURRENT_TIMESTAMP,
+
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+
+
 );
+
 
 -- =============================================
 -- 6. EJERCICIOS DE RUTINA
@@ -157,18 +161,25 @@ CREATE TABLE IF NOT EXISTS configuracion (
 -- =============================================
 -- 10. CONTENIDO EDUCATIVO
 -- =============================================
-CREATE TABLE IF NOT EXISTS contenido (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  titulo      VARCHAR(200)    NOT NULL,
-  categoria   ENUM('saque', 'recepcion', 'bloqueo', 'pose', 'preparacion') NOT NULL,
-  duracion    VARCHAR(20),
-  descripcion TEXT,
-  video_url   VARCHAR(500),
-  imagen_url  VARCHAR(500),
-  activo      BOOLEAN         DEFAULT TRUE,
-  creado_en   DATETIME        DEFAULT CURRENT_TIMESTAMP
-);
 
+CREATE TABLE IF NOT EXISTS contenido (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
+    titulo VARCHAR(200) NOT NULL,
+    categoria ENUM('saque', 'recepcion', 'bloqueo', 'pose', 'preparacion') NOT NULL,
+    duracion VARCHAR(20),
+    descripcion TEXT,
+    video_url VARCHAR(500),
+    imagen_url VARCHAR(500),
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_contenido_usuario
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);
 -- =============================================
 -- 11. DISPOSITIVOS ACTIVOS
 -- =============================================
@@ -285,14 +296,17 @@ CREATE TABLE IF NOT EXISTS plantilla_ejercicios (
 -- se la asignó y de qué plantilla viene (ambas columnas nullable —
 -- si el atleta la creó solo, quedan en NULL)
 ALTER TABLE rutinas
-    ADD COLUMN IF NOT EXISTS entrenador_id INT NULL AFTER usuario_id,
-    ADD COLUMN IF NOT EXISTS plantilla_id INT UNSIGNED NULL AFTER entrenador_id;
-
+ADD COLUMN entrenador_id INT NULL AFTER usuario_id,
+ADD COLUMN plantilla_id INT UNSIGNED NULL AFTER entrenador_id;
 ALTER TABLE rutinas
     ADD CONSTRAINT fk_rutina_entrenador FOREIGN KEY (entrenador_id) REFERENCES usuarios(id)
         ON DELETE SET NULL ON UPDATE CASCADE,
     ADD CONSTRAINT fk_rutina_plantilla FOREIGN KEY (plantilla_id) REFERENCES rutinas_plantillas(id)
-        ON DELETE SET NULL ON UPDATE CASCADE;
+        ON DELETE SET NULL ON UPDATE CASCADE
+;
+
+
+
 
 CREATE TABLE IF NOT EXISTS partidos (
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
